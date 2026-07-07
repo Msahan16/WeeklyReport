@@ -8,6 +8,7 @@ import ReportForm from './pages/ReportForm';
 import TeamDashboard from './pages/TeamDashboard';
 import Projects from './pages/Projects';
 import Navbar from './components/Navbar';
+import ChatWidget from './components/ChatWidget';
 import Unauthorized from './pages/Unauthorized';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
             <Route path="/projects" element={<Projects />} />
           </Route>
         </Routes>
+        <ChatWidget />
       </AuthProvider>
     </BrowserRouter>
   );
