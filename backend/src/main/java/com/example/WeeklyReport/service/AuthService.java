@@ -1,7 +1,9 @@
 package com.example.report.service;
 
 import com.example.report.dto.AuthRequest;
+import com.example.report.dto.AuthResponse;
 import com.example.report.dto.RegisterRequest;
+import com.example.report.config.JwtService;
 import com.example.report.entity.User;
 import com.example.report.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +40,12 @@ public class AuthService {
         return "User registered successfully";
     }
 
-    public String login(AuthRequest request) {
+    public AuthResponse login(AuthRequest request) {
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-        return jwtService.generateToken(userDetails);
+        User user = (User) userDetailsService.loadUserByUsername(request.getEmail());
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token, user.getEmail(), user.getRole().name(), user.getFullName());
     }
 }

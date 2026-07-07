@@ -29,7 +29,9 @@ public class DashboardController {
 
     @GetMapping("/trends")
     public Map<String, List<Long>> getTasksTrend(@RequestParam String start, @RequestParam String end) {
-        // ...
+        LocalDate startDate = LocalDate.parse(start);
+        LocalDate endDate = LocalDate.parse(end);
+        return dashboardService.getTasksTrend(startDate, endDate);
     }
 
     // ... other endpoints for charts

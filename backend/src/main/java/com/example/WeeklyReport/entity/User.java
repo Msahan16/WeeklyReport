@@ -32,6 +32,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role = Role.TEAM_MEMBER;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Report> reports;
 
@@ -52,7 +55,7 @@ public class User implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() { return true; }
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return Boolean.TRUE.equals(active); }
 
     public enum Role {
         TEAM_MEMBER, MANAGER

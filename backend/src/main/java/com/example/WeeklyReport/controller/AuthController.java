@@ -1,6 +1,7 @@
 package com.example.report.controller;
 
 import com.example.report.dto.AuthRequest;
+import com.example.report.dto.AuthResponse;
 import com.example.report.dto.RegisterRequest;
 import com.example.report.service.AuthService;
 import jakarta.validation.Valid;
@@ -23,7 +24,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 }

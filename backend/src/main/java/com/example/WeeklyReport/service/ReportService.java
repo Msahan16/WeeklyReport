@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,24 +27,24 @@ public class ReportService {
     private final ProjectRepository projectRepository;
 
     @Transactional
-    public Report createReport(Long userId, ReportRequest request) {
+    public ReportResponse createReport(Long userId, ReportRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
         Report report = new Report();
         report.setUser(user);
         setReportFields(report, request);
-        return reportRepository.save(report);
+        return mapToResponse(reportRepository.save(report));
     }
 
     @Transactional
-    public Report updateReport(Long reportId, Long userId, ReportRequest request) {
+    public ReportResponse updateReport(Long reportId, Long userId, ReportRequest request) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new NotFoundException("Report not found"));
         if (!report.getUser().getId().equals(userId)) {
             throw new AccessDeniedException("You can only edit your own reports");
         }
         setReportFields(report, request);
-        return reportRepository.save(report);
+        return mapToResponse(reportRepository.save(report));
     }
 
     private void setReportFields(Report report, ReportRequest request) {
@@ -86,5 +87,25 @@ public class ReportService {
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // ... more methods for filtering, compliance, etc.
+    private ReportResponse mapToResponse(Report report) {
+        ReportResponse response = new ReportResponse();
+        response.setId(report.getId());
+        response.setUserId(report.getUser() != null ? report.getUser().getId() : null);
+        response.setUserEmail(report.getUser() != null ? report.getUser().getEmail() : null);
+        response.setUserFullName(report.getUser() != null ? report.getUser().getFullName() : null);
+        response.setWeekStartDate(report.getWeekStartDate());
+        response.setWeekEndDate(report.getWeekEndDate());
+        response.setProjectId(report.getProject() != null ? report.getProject().getId() : null);
+        response.setProjectName(report.getProject() != null ? report.getProject().getName() : null);
+        response.setTasksCompleted(report.getTasksCompleted());
+        response.setTasksPlanned(report.getTasksPlanned());
+        response.setBlockers(report.getBlockers());
+        response.setHoursWorked(report.getHoursWorked() != null ? report.getHoursWorked() : BigDecimal.ZERO);
+        response.setNotes(report.getNotes());
+        response.setStatus(report.getStatus() != null ? report.getStatus().name() : null);
+        response.setCreatedAt(report.getCreatedAt());
+        response.setUpdatedAt(report.getUpdatedAt());
+        response.setSubmittedAt(report.getSubmittedAt());
+        return response;
+    }
 }

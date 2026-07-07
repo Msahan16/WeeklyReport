@@ -1,3 +1,9 @@
+package com.example.report.dto;
+
+import java.math.BigDecimal;
+
+import lombok.Data;
+
 @Data
 public class ReportRequest {
     private String weekStartDate; // yyyy-MM-dd
