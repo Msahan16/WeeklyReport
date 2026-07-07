@@ -1,8 +1,8 @@
-package com.example.report.service;
+package com.example.WeeklyReport.service;
 
-import com.example.report.entity.Project;
-import com.example.report.exception.NotFoundException;
-import com.example.report.repository.ProjectRepository;
+import com.example.WeeklyReport.entity.Project;
+import com.example.WeeklyReport.exception.NotFoundException;
+import com.example.WeeklyReport.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

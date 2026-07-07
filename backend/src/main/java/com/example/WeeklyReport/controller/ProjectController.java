@@ -1,7 +1,7 @@
-package com.example.report.controller;
+package com.example.WeeklyReport.controller;
 
-import com.example.report.entity.Project;
-import com.example.report.service.ProjectService;
+import com.example.WeeklyReport.entity.Project;
+import com.example.WeeklyReport.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

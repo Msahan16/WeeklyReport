@@ -1,11 +1,11 @@
-package com.example.report.service;
+package com.example.WeeklyReport.service;
 
-import com.example.report.dto.AuthRequest;
-import com.example.report.dto.AuthResponse;
-import com.example.report.dto.RegisterRequest;
-import com.example.report.config.JwtService;
-import com.example.report.entity.User;
-import com.example.report.repository.UserRepository;
+import com.example.WeeklyReport.dto.AuthRequest;
+import com.example.WeeklyReport.dto.AuthResponse;
+import com.example.WeeklyReport.dto.RegisterRequest;
+import com.example.WeeklyReport.config.JwtService;
+import com.example.WeeklyReport.entity.User;
+import com.example.WeeklyReport.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

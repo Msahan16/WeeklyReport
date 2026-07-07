@@ -1,4 +1,4 @@
-package com.example.report.exception;
+package com.example.WeeklyReport.exception;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {

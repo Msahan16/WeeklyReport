@@ -1,4 +1,4 @@
-package com.example.report;
+package com.example.WeeklyReport;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

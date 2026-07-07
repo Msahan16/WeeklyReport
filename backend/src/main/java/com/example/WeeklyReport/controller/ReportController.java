@@ -1,9 +1,9 @@
-package com.example.report.controller;
+package com.example.WeeklyReport.controller;
 
-import com.example.report.dto.ReportRequest;
-import com.example.report.dto.ReportResponse;
-import com.example.report.entity.User;
-import com.example.report.service.ReportService;
+import com.example.WeeklyReport.dto.ReportRequest;
+import com.example.WeeklyReport.dto.ReportResponse;
+import com.example.WeeklyReport.entity.User;
+import com.example.WeeklyReport.service.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -50,11 +50,13 @@ public class ReportController {
     // Manager endpoints
     @GetMapping("/team")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<List<ReportResponse>> getTeamReports(@RequestParam String weekStart,
-                                                               @RequestParam String weekEnd) {
+    public ResponseEntity<List<ReportResponse>> getTeamReports(
+            @RequestParam String weekStart,
+            @RequestParam String weekEnd,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long projectId) {
         LocalDate start = LocalDate.parse(weekStart);
         LocalDate end = LocalDate.parse(weekEnd);
-        return ResponseEntity.ok(reportService.getReportsForWeek(start, end));
+        return ResponseEntity.ok(reportService.getTeamReports(start, end, userId, projectId));
     }
-    // ... other filter endpoints
 }

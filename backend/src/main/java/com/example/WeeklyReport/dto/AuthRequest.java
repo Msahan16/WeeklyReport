@@ -1,8 +1,8 @@
-package com.example.report.dto;
+package com.example.WeeklyReport.dto;
 
-import lombok.Data;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
 @Data
 public class AuthRequest {

@@ -1,4 +1,4 @@
-package com.example.report.config;
+package com.example.WeeklyReport.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

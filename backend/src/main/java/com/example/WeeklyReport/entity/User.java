@@ -1,4 +1,4 @@
-package com.example.report.entity;
+package com.example.WeeklyReport.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

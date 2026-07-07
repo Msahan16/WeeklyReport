@@ -1,9 +1,9 @@
-package com.example.report.controller;
+package com.example.WeeklyReport.controller;
 
-import com.example.report.dto.AuthRequest;
-import com.example.report.dto.AuthResponse;
-import com.example.report.dto.RegisterRequest;
-import com.example.report.service.AuthService;
+import com.example.WeeklyReport.dto.AuthRequest;
+import com.example.WeeklyReport.dto.AuthResponse;
+import com.example.WeeklyReport.dto.RegisterRequest;
+import com.example.WeeklyReport.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

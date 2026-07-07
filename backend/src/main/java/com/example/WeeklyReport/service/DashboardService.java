@@ -1,18 +1,20 @@
-package com.example.report.service;
+package com.example.WeeklyReport.service;
 
-import com.example.report.dto.DashboardStats;
-import com.example.report.entity.Report;
-import com.example.report.repository.ReportRepository;
+import com.example.WeeklyReport.dto.DashboardStats;
+import com.example.WeeklyReport.dto.ReportResponse;
+import com.example.WeeklyReport.entity.Report;
+import com.example.WeeklyReport.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +24,16 @@ public class DashboardService {
     public DashboardStats getStats(LocalDate start, LocalDate end) {
         List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
         long totalReports = reports.size();
-        long submittedReports = reports.stream().filter(report -> report.getStatus() == Report.Status.SUBMITTED).count();
+        long submittedReports = reports.stream().filter(r -> r.getStatus() == Report.Status.SUBMITTED).count();
         long draftReports = totalReports - submittedReports;
+
+        // Count reports that have non-empty blockers text
+        long openBlockers = reports.stream()
+                .filter(r -> r.getBlockers() != null && !r.getBlockers().isBlank())
+                .count();
+
         BigDecimal totalHoursWorked = reports.stream()
-                .map(report -> report.getHoursWorked() == null ? BigDecimal.ZERO : report.getHoursWorked())
+                .map(r -> r.getHoursWorked() == null ? BigDecimal.ZERO : r.getHoursWorked())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal averageHoursWorked = totalReports == 0
                 ? BigDecimal.ZERO
@@ -35,6 +43,7 @@ public class DashboardService {
         stats.setTotalReports(totalReports);
         stats.setSubmittedReports(submittedReports);
         stats.setDraftReports(draftReports);
+        stats.setOpenBlockers(openBlockers);
         stats.setTotalHoursWorked(totalHoursWorked);
         stats.setAverageHoursWorked(averageHoursWorked);
         return stats;
@@ -47,13 +56,13 @@ public class DashboardService {
         List<Long> reportCounts = new ArrayList<>();
         List<Long> submittedCounts = new ArrayList<>();
 
-        for (LocalDate current = start; !current.isAfter(end); current = current.plusDays(1)) {
+        for (LocalDate current = start; !current.isAfter(end); current = current.plusWeeks(1)) {
             LocalDate day = current;
             long reportCountForDay = reports.stream()
-                .filter(report -> day.equals(report.getWeekStartDate()))
+                .filter(r -> day.equals(r.getWeekStartDate()))
                     .count();
             long submittedCountForDay = submittedReports.stream()
-                .filter(report -> day.equals(report.getWeekStartDate()))
+                .filter(r -> day.equals(r.getWeekStartDate()))
                     .count();
             reportCounts.add(reportCountForDay);
             submittedCounts.add(submittedCountForDay);
@@ -63,5 +72,75 @@ public class DashboardService {
         trend.put("reports", reportCounts);
         trend.put("submittedReports", submittedCounts);
         return trend;
+    }
+
+    public List<Map<String, Object>> getWorkloadByProject(LocalDate start, LocalDate end) {
+        List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
+
+        // Group by project name, count tasks/hours per project
+        Map<String, Map<String, Object>> projectMap = new LinkedHashMap<>();
+        for (Report r : reports) {
+            String projectName = r.getProject() != null ? r.getProject().getName() : "No Project";
+            projectMap.computeIfAbsent(projectName, k -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("project", k);
+                m.put("reports", 0L);
+                m.put("hours", BigDecimal.ZERO);
+                return m;
+            });
+            Map<String, Object> entry = projectMap.get(projectName);
+            entry.put("reports", (Long) entry.get("reports") + 1);
+            BigDecimal hrs = r.getHoursWorked() != null ? r.getHoursWorked() : BigDecimal.ZERO;
+            entry.put("hours", ((BigDecimal) entry.get("hours")).add(hrs));
+        }
+        return new ArrayList<>(projectMap.values());
+    }
+
+    public List<Map<String, Object>> getSubmissionStatusByMember(LocalDate start, LocalDate end) {
+        List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
+
+        Map<String, Map<String, Object>> memberMap = new LinkedHashMap<>();
+        for (Report r : reports) {
+            String name = r.getUser() != null ? r.getUser().getFullName() : "Unknown";
+            memberMap.computeIfAbsent(name, k -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("name", k);
+                m.put("submitted", 0L);
+                m.put("draft", 0L);
+                return m;
+            });
+            Map<String, Object> entry = memberMap.get(name);
+            if (r.getStatus() == Report.Status.SUBMITTED) {
+                entry.put("submitted", (Long) entry.get("submitted") + 1);
+            } else {
+                entry.put("draft", (Long) entry.get("draft") + 1);
+            }
+        }
+        return new ArrayList<>(memberMap.values());
+    }
+
+    public List<ReportResponse> getRecentReports() {
+        return reportRepository.findTop10ByOrderByCreatedAtDesc().stream()
+                .map(this::mapToReportResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ReportResponse mapToReportResponse(Report report) {
+        ReportResponse response = new ReportResponse();
+        response.setId(report.getId());
+        response.setUserId(report.getUser() != null ? report.getUser().getId() : null);
+        response.setUserEmail(report.getUser() != null ? report.getUser().getEmail() : null);
+        response.setUserFullName(report.getUser() != null ? report.getUser().getFullName() : null);
+        response.setWeekStartDate(report.getWeekStartDate());
+        response.setWeekEndDate(report.getWeekEndDate());
+        response.setProjectId(report.getProject() != null ? report.getProject().getId() : null);
+        response.setProjectName(report.getProject() != null ? report.getProject().getName() : null);
+        response.setTasksCompleted(report.getTasksCompleted());
+        response.setBlockers(report.getBlockers());
+        response.setHoursWorked(report.getHoursWorked() != null ? report.getHoursWorked() : BigDecimal.ZERO);
+        response.setStatus(report.getStatus() != null ? report.getStatus().name() : null);
+        response.setCreatedAt(report.getCreatedAt());
+        response.setSubmittedAt(report.getSubmittedAt());
+        return response;
     }
 }

@@ -1,7 +1,7 @@
-package com.example.report.service;
+package com.example.WeeklyReport.service;
 
-import com.example.report.entity.User;
-import com.example.report.repository.UserRepository;
+import com.example.WeeklyReport.entity.User;
+import com.example.WeeklyReport.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

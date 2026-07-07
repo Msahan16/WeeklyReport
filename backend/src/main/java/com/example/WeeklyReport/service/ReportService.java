@@ -1,14 +1,14 @@
-package com.example.report.service;
+package com.example.WeeklyReport.service;
 
-import com.example.report.dto.ReportRequest;
-import com.example.report.dto.ReportResponse;
-import com.example.report.entity.Project;
-import com.example.report.entity.Report;
-import com.example.report.entity.User;
-import com.example.report.exception.NotFoundException;
-import com.example.report.repository.ProjectRepository;
-import com.example.report.repository.ReportRepository;
-import com.example.report.repository.UserRepository;
+import com.example.WeeklyReport.dto.ReportRequest;
+import com.example.WeeklyReport.dto.ReportResponse;
+import com.example.WeeklyReport.entity.Project;
+import com.example.WeeklyReport.entity.Report;
+import com.example.WeeklyReport.entity.User;
+import com.example.WeeklyReport.exception.NotFoundException;
+import com.example.WeeklyReport.repository.ProjectRepository;
+import com.example.WeeklyReport.repository.ReportRepository;
+import com.example.WeeklyReport.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -54,6 +54,8 @@ public class ReportService {
             Project project = projectRepository.findById(request.getProjectId())
                     .orElseThrow(() -> new NotFoundException("Project not found"));
             report.setProject(project);
+        } else {
+            report.setProject(null);
         }
         report.setTasksCompleted(request.getTasksCompleted());
         report.setTasksPlanned(request.getTasksPlanned());
@@ -81,10 +83,19 @@ public class ReportService {
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // Manager methods
-    public List<ReportResponse> getReportsForWeek(LocalDate start, LocalDate end) {
-        return reportRepository.findByWeekStartDateBetween(start, end)
-                .stream().map(this::mapToResponse).collect(Collectors.toList());
+    // Manager methods — now with optional filters
+    public List<ReportResponse> getTeamReports(LocalDate start, LocalDate end, Long userId, Long projectId) {
+        List<Report> reports;
+        if (userId != null && projectId != null) {
+            reports = reportRepository.findByWeekRangeAndUserAndProject(start, end, userId, projectId);
+        } else if (userId != null) {
+            reports = reportRepository.findByWeekRangeAndUser(start, end, userId);
+        } else if (projectId != null) {
+            reports = reportRepository.findByWeekRangeAndProject(start, end, projectId);
+        } else {
+            reports = reportRepository.findByWeekStartDateBetween(start, end);
+        }
+        return reports.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     private ReportResponse mapToResponse(Report report) {

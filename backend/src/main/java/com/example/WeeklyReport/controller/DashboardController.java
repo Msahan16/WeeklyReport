@@ -1,13 +1,11 @@
-package com.example.report.controller;
+package com.example.WeeklyReport.controller;
 
-import com.example.report.dto.DashboardStats;
-import com.example.report.service.DashboardService;
+import com.example.WeeklyReport.dto.DashboardStats;
+import com.example.WeeklyReport.dto.ReportResponse;
+import com.example.WeeklyReport.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,5 +32,22 @@ public class DashboardController {
         return dashboardService.getTasksTrend(startDate, endDate);
     }
 
-    // ... other endpoints for charts
+    @GetMapping("/workload-by-project")
+    public List<Map<String, Object>> getWorkloadByProject(@RequestParam String weekStart, @RequestParam String weekEnd) {
+        LocalDate start = LocalDate.parse(weekStart);
+        LocalDate end = LocalDate.parse(weekEnd);
+        return dashboardService.getWorkloadByProject(start, end);
+    }
+
+    @GetMapping("/submission-status")
+    public List<Map<String, Object>> getSubmissionStatusByMember(@RequestParam String weekStart, @RequestParam String weekEnd) {
+        LocalDate start = LocalDate.parse(weekStart);
+        LocalDate end = LocalDate.parse(weekEnd);
+        return dashboardService.getSubmissionStatusByMember(start, end);
+    }
+
+    @GetMapping("/recent-reports")
+    public List<ReportResponse> getRecentReports() {
+        return dashboardService.getRecentReports();
+    }
 }

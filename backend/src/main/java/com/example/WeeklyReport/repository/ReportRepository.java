@@ -1,9 +1,10 @@
-package com.example.report.repository;
+package com.example.WeeklyReport.repository;
 
-import com.example.report.entity.Report;
-import com.example.report.entity.User;
+import com.example.WeeklyReport.entity.Report;
+import com.example.WeeklyReport.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,9 +14,17 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByUserOrderByWeekStartDateDesc(User user);
     List<Report> findByWeekStartDateBetween(LocalDate start, LocalDate end);
     List<Report> findByUserAndWeekStartDate(User user, LocalDate weekStartDate);
+    List<Report> findTop10ByOrderByCreatedAtDesc();
 
-    // Custom queries for dashboard
     @Query("SELECT r FROM Report r WHERE r.status = 'SUBMITTED' AND r.weekStartDate BETWEEN :start AND :end")
-    List<Report> findSubmittedReportsForWeek(LocalDate start, LocalDate end);
-    // ... more as needed
+    List<Report> findSubmittedReportsForWeek(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT r FROM Report r WHERE r.weekStartDate BETWEEN :start AND :end AND r.user.id = :userId")
+    List<Report> findByWeekRangeAndUser(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("userId") Long userId);
+
+    @Query("SELECT r FROM Report r WHERE r.weekStartDate BETWEEN :start AND :end AND r.project.id = :projectId")
+    List<Report> findByWeekRangeAndProject(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("projectId") Long projectId);
+
+    @Query("SELECT r FROM Report r WHERE r.weekStartDate BETWEEN :start AND :end AND r.user.id = :userId AND r.project.id = :projectId")
+    List<Report> findByWeekRangeAndUserAndProject(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("userId") Long userId, @Param("projectId") Long projectId);
 }

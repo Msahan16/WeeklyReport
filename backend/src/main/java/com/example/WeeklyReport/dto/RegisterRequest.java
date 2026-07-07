@@ -1,4 +1,4 @@
-package com.example.report.dto;
+package com.example.WeeklyReport.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package com.example.report.config;
+package com.example.WeeklyReport.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
