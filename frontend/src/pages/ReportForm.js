@@ -50,7 +50,7 @@ const ReportForm = () => {
   };
 
   return (
-    <div style={styles.shell}>
+    <div style={styles.shell} className="page-container">
       <div style={styles.container}>
         {/* Page header */}
         <div style={styles.header}>
@@ -66,9 +66,9 @@ const ReportForm = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
           {/* Week range */}
-          <div style={styles.card}>
+          <div style={styles.card} className="card">
             <h3 style={styles.cardTitle}>📅 Date Range</h3>
-            <div style={styles.row}>
+            <div className="responsive-grid-2">
               <Field label="Week Start Date *" error={errors.weekStartDate?.message}>
                 <input
                   {...register('weekStartDate', { required: 'Required' })}
@@ -89,7 +89,7 @@ const ReportForm = () => {
           </div>
 
           {/* Project */}
-          <div style={styles.card}>
+          <div style={styles.card} className="card">
             <h3 style={styles.cardTitle}>🏷 Project / Category</h3>
             <Field label="Project">
               <select {...register('projectId')} style={fieldStyle(false)} id="projectId">
@@ -102,7 +102,7 @@ const ReportForm = () => {
           </div>
 
           {/* Work details */}
-          <div style={styles.card}>
+          <div style={styles.card} className="card">
             <h3 style={styles.cardTitle}>💼 Work Details</h3>
             <Field label="Tasks Completed *" error={errors.tasksCompleted?.message}>
               <textarea
@@ -125,7 +125,7 @@ const ReportForm = () => {
           </div>
 
           {/* Blockers & extra */}
-          <div style={styles.card}>
+          <div style={styles.card} className="card">
             <h3 style={styles.cardTitle}>🚧 Blockers & Notes</h3>
             <Field label="Blockers / Challenges">
               <textarea
@@ -136,7 +136,7 @@ const ReportForm = () => {
                 id="blockers"
               />
             </Field>
-            <div style={styles.row}>
+            <div className="responsive-grid-2">
               <Field label="Hours Worked (optional)">
                 <input
                   {...register('hoursWorked')}
@@ -211,7 +211,7 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
   },
   container: {
-    maxWidth: 760,
+    maxWidth: '100%',
     margin: '0 auto',
   },
   header: {
@@ -265,11 +265,6 @@ const styles = {
     fontSize: 16,
     fontWeight: 700,
     color: '#0f172a',
-  },
-  row: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 16,
   },
   label: {
     fontSize: 13,

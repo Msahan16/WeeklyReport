@@ -28,7 +28,7 @@ const MyReports = () => {
   );
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-container">
       {/* Header */}
       <div style={styles.header}>
         <div>
@@ -109,7 +109,7 @@ const MyReports = () => {
 
 const styles = {
   page: {
-    maxWidth: '1100px',
+    maxWidth: '100%',
     margin: '0 auto',
     padding: '36px 24px 56px',
     fontFamily: "'Inter', sans-serif",

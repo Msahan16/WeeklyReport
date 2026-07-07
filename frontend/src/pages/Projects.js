@@ -76,7 +76,7 @@ const Projects = () => {
   if (loading) return <div style={styles.loading}>Loading projects…</div>;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="page-container">
       <div style={styles.headerRow}>
         <div>
           <div style={styles.kicker}>Manager</div>
@@ -173,7 +173,7 @@ const Projects = () => {
 const styles = {
   container: {
     padding: '36px 24px 64px',
-    maxWidth: '900px',
+    maxWidth: '100%',
     margin: '0 auto',
     fontFamily: "'Inter', sans-serif",
   },

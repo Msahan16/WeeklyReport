@@ -83,7 +83,7 @@ const TeamDashboard = () => {
   );
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-container">
       {/* Header */}
       <div style={styles.headerRow}>
         <div>
@@ -94,7 +94,7 @@ const TeamDashboard = () => {
       </div>
 
       {/* Filters bar */}
-      <div style={styles.filtersBar}>
+      <div className="responsive-filters" style={styles.filtersBar}>
         <div style={styles.filterGroup}>
           <label style={styles.filterLabel}>Week Start</label>
           <input id="filter-week-start" type="date" value={weekStart} onChange={e => setWeekStart(e.target.value)} style={styles.filterInput} />
@@ -133,7 +133,7 @@ const TeamDashboard = () => {
       {/* Charts row */}
       <div style={styles.chartsRow}>
         {/* Submission status pie */}
-        <div style={styles.chartCard}>
+        <div style={styles.chartCard} className="card">
           <h3 style={styles.chartTitle}>Submission Status</h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
@@ -146,8 +146,8 @@ const TeamDashboard = () => {
         </div>
 
         {/* Workload by project bar */}
-        <div style={styles.chartCard}>
-          <h3 style={styles.chartTitle}>Workload by Project</h3>
+        <div style={styles.chartCard} className="card">
+          <h3 style={styles.chartTitle}>Workload by Project (Hours)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={workload} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -162,26 +162,47 @@ const TeamDashboard = () => {
         </div>
       </div>
 
-      {/* Submission status by member */}
-      {submissionStatus.length > 0 && (
-        <div style={styles.chartCard}>
-          <h3 style={styles.chartTitle}>Report Submission Status by Member</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={submissionStatus} layout="vertical" margin={{ top: 0, right: 20, left: 80, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis type="number" tick={{ fontSize: 11 }} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} width={80} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="submitted" name="Submitted" fill="#10b981" radius={[0, 4, 4, 0]} stackId="a" />
-              <Bar dataKey="draft" name="Draft" fill="#f59e0b" radius={[0, 4, 4, 0]} stackId="a" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+      {/* Bottom row */}
+      <div className="responsive-grid-1-2" style={{ marginTop: 24 }}>
+        {/* Member status */}
+        {submissionStatus.length > 0 && (
+          <div style={styles.chartCard} className="card">
+            <h3 style={styles.chartTitle}>Report Submission Status by Member</h3>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={submissionStatus} layout="vertical" margin={{ top: 0, right: 20, left: 80, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} width={80} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="submitted" name="Submitted" fill="#10b981" radius={[0, 4, 4, 0]} stackId="a" />
+                <Bar dataKey="draft" name="Draft" fill="#f59e0b" radius={[0, 4, 4, 0]} stackId="a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Recent activity */}
+        {recentReports.length > 0 && (
+          <div style={styles.card} className="card">
+            <h3 style={styles.sectionTitle}>Recent Submissions</h3>
+            <div style={styles.reportList}>
+              {recentReports.slice(0, 5).map(r => (
+                <div key={r.id} style={{ ...styles.reportItem, background: 'transparent', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <div>
+                    <strong style={{ fontSize: 13, color: '#0f172a' }}>{r.userFullName || r.userEmail}</strong>
+                    <span style={{ color: '#64748b', fontSize: 12, marginLeft: 8 }}>submitted a report</span>
+                  </div>
+                  <StatusBadge status={r.status} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Reports table */}
-      <div style={styles.card}>
+      <div style={styles.card} className="card">
         <h3 style={styles.sectionTitle}>Weekly Reports ({reports.length})</h3>
         <div style={styles.reportList}>
           {reports.length === 0 ? (
@@ -210,23 +231,6 @@ const TeamDashboard = () => {
         </div>
       </div>
 
-      {/* Recent activity feed */}
-      {recentReports.length > 0 && (
-        <div style={styles.card}>
-          <h3 style={styles.sectionTitle}>Recent Activity</h3>
-          <div style={styles.reportList}>
-            {recentReports.slice(0, 5).map(r => (
-              <div key={r.id} style={{ ...styles.reportItem, background: 'transparent', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                <div>
-                  <strong style={{ fontSize: 13, color: '#0f172a' }}>{r.userFullName || r.userEmail}</strong>
-                  <span style={{ color: '#64748b', fontSize: 12, marginLeft: 8 }}>submitted a report</span>
-                </div>
-                <StatusBadge status={r.status} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -254,7 +258,7 @@ const StatusBadge = ({ status }) => {
 
 const styles = {
   page: {
-    maxWidth: 1150,
+    maxWidth: '100%',
     margin: '0 auto',
     padding: '36px 24px 64px',
     fontFamily: "'Inter', sans-serif",

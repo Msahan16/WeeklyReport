@@ -168,3 +168,79 @@ input, select, textarea, button {
   color: #dc2626;
   border-color: #fecaca;
 }
+
+/* Responsive Utilities */
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.responsive-grid-1-2 {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+}
+
+.responsive-flex-row {
+  display: flex;
+  gap: 16px;
+}
+
+.responsive-filters {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .responsive-grid-2,
+  .responsive-grid-1-2 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .responsive-flex-row {
+    flex-direction: column;
+  }
+
+  /* Navbar Mobile */
+  .navbar {
+    flex-direction: column;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .nav-right-container {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+  
+  .nav-actions {
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+    padding-left: 0;
+    padding-top: 12px;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Cards */
+  .card, .projectCard {
+    padding: 16px !important;
+  }
+  html {
+    font-size: 14px;
+  }
+  .page-container {
+    padding: 20px 12px 40px !important;
+  }
+}
