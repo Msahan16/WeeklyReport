@@ -56,7 +56,7 @@ const ChatWidget = () => {
         <div className="chat-window">
           <div className="chat-header">
             <div className="chat-header-title">
-              <img src={chatIcon} alt="AI Icon" style={{ width: '20px', height: '20px' }} /> AI Team Assistant
+              <img src={chatIcon} alt="AI Icon" style={{ width: '20px', height: '20px' }} /> AI Chat Assistant
             </div>
             <button className="chat-close-btn" onClick={() => setIsOpen(false)}>&times;</button>
           </div>
@@ -81,13 +81,13 @@ const ChatWidget = () => {
             <div className="chat-quick-actions">
               {user?.role === 'MANAGER' ? (
                 <>
-                  <button 
+                  <button
                     className="quick-action-btn"
                     onClick={() => handleSend("Generate a summary of the team's completed work, recurring blockers, and workload imbalances over the last few weeks.")}
                   >
                     Generate Team Summary
                   </button>
-                  <button 
+                  <button
                     className="quick-action-btn"
                     onClick={() => handleSend("What are the most common blockers right now?")}
                   >
@@ -96,13 +96,13 @@ const ChatWidget = () => {
                 </>
               ) : (
                 <>
-                  <button 
+                  <button
                     className="quick-action-btn"
                     onClick={() => handleSend("Summarize my completed work over the last few weeks.")}
                   >
                     My Recent Work
                   </button>
-                  <button 
+                  <button
                     className="quick-action-btn"
                     onClick={() => handleSend("What are the blockers I've been facing recently?")}
                   >
@@ -132,7 +132,7 @@ const ChatWidget = () => {
       )}
 
       {!isOpen && (
-        <button className="chat-bubble-btn" onClick={() => setIsOpen(true)} title="AI Team Assistant">
+        <button className="chat-bubble-btn" onClick={() => setIsOpen(true)} title="AI Chat Assistant">
           <img src={chatIcon} alt="Chat Icon" style={{ width: '28px', height: '28px' }} />
         </button>
       )}
