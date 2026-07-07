@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
+import { toastError } from '../utils/swal';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -28,11 +29,9 @@ const TeamDashboard = () => {
   const [filterMember, setFilterMember] = useState('');
   const [filterProject, setFilterProject] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
       const params = new URLSearchParams({ weekStart, weekEnd });
       if (filterMember) params.append('userId', filterMember);
@@ -53,7 +52,7 @@ const TeamDashboard = () => {
       setRecentReports(recentRes.data);
       setProjects(projectsRes.data);
     } catch (err) {
-      setError('Could not load dashboard data. Check the backend connection and your session.');
+      toastError('Could not load dashboard data. Check your connection and session.');
     } finally {
       setLoading(false);
     }
@@ -120,8 +119,6 @@ const TeamDashboard = () => {
         </div>
         <button id="apply-filters-btn" style={styles.applyBtn} onClick={fetchData}>Apply</button>
       </div>
-
-      {error && <div style={styles.error}>{error}</div>}
 
       {/* Summary stat cards */}
       <div style={styles.statsGrid}>

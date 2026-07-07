@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toastSuccess, alertError } from '../utils/swal';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -15,12 +15,12 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     try {
       await login(email, password);
+      toastSuccess('Welcome back! Signed in successfully.');
       navigate(from, { replace: true });
     } catch (err) {
-      setError('Login failed. Check your email and password.');
+      alertError('Login Failed', 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -32,7 +32,6 @@ const Login = () => {
         <div style={styles.badge}>WeeklyReport</div>
         <h1 style={styles.title}>Sign in</h1>
         <p style={styles.subtitle}>Access your weekly reports and team dashboard.</p>
-        {error ? <div style={styles.error}>{error}</div> : null}
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>
             Email
@@ -42,6 +41,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              id="login-email"
             />
           </label>
           <label style={styles.label}>
@@ -52,10 +52,11 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              id="login-password"
             />
           </label>
-          <button style={styles.button} type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+          <button style={styles.button} type="submit" disabled={loading} id="login-submit-btn">
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
         <p style={styles.footer}>
@@ -129,13 +130,6 @@ const styles = {
     fontSize: '15px',
     fontWeight: 700,
     cursor: 'pointer',
-  },
-  error: {
-    background: '#fee2e2',
-    color: '#b91c1c',
-    padding: '12px 14px',
-    borderRadius: '12px',
-    marginBottom: '16px',
   },
   footer: {
     marginTop: '18px',

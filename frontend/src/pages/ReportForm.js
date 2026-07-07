@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toastSuccess, alertError } from '../utils/swal';
 
 const ReportForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const { register, handleSubmit, setValue, formState: { errors } } = useForm();
 
   useEffect(() => {
@@ -25,22 +25,25 @@ const ReportForm = () => {
         setValue('hoursWorked', data.hoursWorked);
         setValue('notes', data.notes || '');
         setValue('status', data.status || 'DRAFT');
-      }).catch(() => setError('Could not load report data.'));
+      }).catch(() => alertError('Load Error', 'Could not load report data.'));
     }
   }, [id, setValue]);
 
   const onSubmit = async (data) => {
     setSaving(true);
-    setError('');
     try {
       if (id) {
         await api.put(`/reports/${id}`, data);
+        toastSuccess('Report updated successfully!');
       } else {
         await api.post('/reports', data);
+        const isSubmit = data.status === 'SUBMITTED';
+        toastSuccess(isSubmit ? 'Report submitted successfully!' : 'Report saved as draft!');
       }
       navigate('/my-reports');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error saving report. Please try again.');
+      const msg = err.response?.data?.message || 'An unexpected error occurred.';
+      alertError('Save Failed', msg);
     } finally {
       setSaving(false);
     }
@@ -60,8 +63,6 @@ const ReportForm = () => {
             <p style={styles.subtitle}>Fill in the fixed fields below. All reports follow the same structure.</p>
           </div>
         </div>
-
-        {error && <div style={styles.errorBanner}>{error}</div>}
 
         <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
           {/* Week range */}
@@ -242,14 +243,6 @@ const styles = {
   subtitle: {
     margin: 0,
     color: '#64748b',
-    fontSize: 14,
-  },
-  errorBanner: {
-    background: '#fee2e2',
-    color: '#b91c1c',
-    padding: '12px 16px',
-    borderRadius: 12,
-    marginBottom: 20,
     fontSize: 14,
   },
   form: {

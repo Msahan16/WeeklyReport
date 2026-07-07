@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { Link, useNavigate } from 'react-router-dom';
+import { toastError } from '../utils/swal';
 
 const STATUS_COLORS = {
   SUBMITTED: { bg: '#dcfce7', color: '#16a34a', label: 'Submitted' },
@@ -10,13 +11,12 @@ const STATUS_COLORS = {
 const MyReports = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     api.get('/reports/my')
       .then(res => setReports(res.data))
-      .catch(() => setError('Could not load your reports.'))
+      .catch(() => toastError('Could not load your reports.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,8 +42,6 @@ const MyReports = () => {
           </button>
         </Link>
       </div>
-
-      {error && <div style={styles.errorBanner}>{error}</div>}
 
       {reports.length === 0 ? (
         <div style={styles.emptyState}>
@@ -172,14 +170,6 @@ const styles = {
     cursor: 'pointer',
     boxShadow: '0 4px 14px rgba(59,130,246,0.4)',
   },
-  errorBanner: {
-    background: '#fee2e2',
-    color: '#b91c1c',
-    padding: '12px 16px',
-    borderRadius: 12,
-    marginBottom: 20,
-    fontSize: 14,
-  },
   emptyState: {
     textAlign: 'center',
     padding: '64px 24px',
@@ -204,7 +194,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 14,
-    transition: 'box-shadow 0.2s',
   },
   cardTop: {
     display: 'flex',
