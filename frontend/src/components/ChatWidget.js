@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './ChatWidget.css';
 import chatIcon from './chat.png';
@@ -11,8 +12,11 @@ const client = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
+const HIDDEN_ROUTES = ['/login', '/register', '/unauthorized'];
+
 const ChatWidget = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'ai', text: 'Hi there! I can analyze recent team reports. Ask me a question or generate a summary.' }
@@ -31,8 +35,8 @@ const ChatWidget = () => {
     }
   }, [messages, isOpen]);
 
-  // Render for all authenticated users
-  if (!user) {
+  // Hide on login, register, and unauthorized pages
+  if (!user || HIDDEN_ROUTES.includes(location.pathname)) {
     return null;
   }
 
