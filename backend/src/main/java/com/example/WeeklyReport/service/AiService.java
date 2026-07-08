@@ -3,77 +3,30 @@ package com.example.WeeklyReport.service;
 import com.example.WeeklyReport.entity.Report;
 import com.example.WeeklyReport.entity.User;
 import com.example.WeeklyReport.repository.ReportRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class AiService {
 
-    @Value("${gemini.api.key}")
-    private String apiKey;
-
     private final ReportRepository reportRepository;
-    private final RestTemplate restTemplate;
 
-    public AiService(ReportRepository reportRepository, RestTemplate restTemplate) {
+    public AiService(ReportRepository reportRepository) {
         this.reportRepository = reportRepository;
-        this.restTemplate = restTemplate;
     }
 
     public String generateResponse(String prompt, User user) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
-
         try {
-            // Build the system prompt with context
             String context = buildContext(user);
             String roleStr = user.getRole() == User.Role.MANAGER ? "team manager" : "team member";
-            String fullPrompt = "You are an AI Chat Assistant for a " + roleStr + " analyzing weekly reports. " +
-                    "Use the following report data to answer their question.\n\n" +
-                    "=== RECENT REPORTS ===\n" + context + "\n=====================\n\n" +
-                    "Question: " + prompt;
 
-            // Build request payload
-            Map<String, Object> textPart = new HashMap<>();
-            textPart.put("text", fullPrompt);
-
-            Map<String, Object> contentPart = new HashMap<>();
-            contentPart.put("parts", List.of(textPart));
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("contents", List.of(contentPart));
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-
-            // Make API call
-            Map<String, Object> response = restTemplate.postForObject(url, requestEntity, Map.class);
-
-            if (response != null && response.containsKey("candidates")) {
-                List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-                if (candidates != null && !candidates.isEmpty()) {
-                    Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-                    if (content != null && content.containsKey("parts")) {
-                        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                        if (parts != null && !parts.isEmpty()) {
-                            return (String) parts.get(0).get("text");
-                        }
-                    }
-                }
-            }
-            return "Sorry, I could not process the AI response.";
+            // AI service is not configured — return report context as a summary
+            return "AI service is not configured. Here is the report context:\n\n" + context;
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error communicating with AI service: " + e.getMessage();
+            return "Error processing request: " + e.getMessage();
         }
     }
 
