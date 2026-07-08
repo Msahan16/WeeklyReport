@@ -1,9 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import './ChatWidget.css';
 import chatIcon from './chat.png';
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.REACT_APP_OPENROUTER_API_KEY,
+  dangerouslyAllowBrowser: true
+});
 
 const ChatWidget = () => {
   const { user } = useAuth();
@@ -40,11 +46,24 @@ const ChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const res = await api.post('/ai/chat', { prompt: textToSend });
-      setMessages([...newMessages, { role: 'ai', text: res.data.response }]);
+      const openRouterMessages = newMessages.map(msg => ({
+        role: msg.role === 'ai' ? 'assistant' : 'user',
+        content: msg.text
+      }));
+
+      const apiResponse = await client.chat.completions.create({
+        model: 'tencent/hy3:free',
+        messages: openRouterMessages,
+      });
+
+      const responseText = apiResponse.choices[0]?.message?.content || 'I received an empty response. Please try again.';
+      setMessages([...newMessages, { role: 'ai', text: responseText }]);
     } catch (err) {
       console.error('AI Chat Error:', err);
-      setMessages([...newMessages, { role: 'ai', text: 'Sorry, I encountered an error while processing your request.' }]);
+      const errorMsg = err?.status === 429
+        ? 'Too many requests. Please wait a moment and try again.'
+        : `Sorry, I encountered an error: ${err.message}`;
+      setMessages([...newMessages, { role: 'ai', text: errorMsg }]);
     } finally {
       setIsLoading(false);
     }
