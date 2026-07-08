@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 import './ChatWidget.css';
 import chatIcon from './chat.png';
 import OpenAI from 'openai';
@@ -14,16 +15,68 @@ const client = new OpenAI({
 
 const HIDDEN_ROUTES = ['/login', '/register', '/unauthorized'];
 
+const DEFAULT_MESSAGES = [
+  { role: 'ai', text: 'Hi there! I can analyze your reports. Ask me a question or generate a summary.' }
+];
+
+const formatReportsForContext = (reports, user) => {
+  if (!reports || reports.length === 0) {
+    return `User "${user.fullName}" (${user.email}, role: ${user.role}) has no reports yet.`;
+  }
+  const reportSummaries = reports.map(r =>
+    `- Week: ${r.weekStartDate} to ${r.weekEndDate} | Project: ${r.projectName || 'N/A'} | ` +
+    `Status: ${r.status} | Tasks Completed: ${r.tasksCompleted || 'None'} | ` +
+    `Tasks Planned: ${r.tasksPlanned || 'None'} | Blockers: ${r.blockers || 'None'} | ` +
+    `Hours: ${r.hoursWorked || 0} | Notes: ${r.notes || 'None'}` +
+    (r.userFullName ? ` | Submitted by: ${r.userFullName}` : '')
+  ).join('\n');
+  return `User "${user.fullName}" (${user.email}, role: ${user.role}).\n\nReports:\n${reportSummaries}`;
+};
+
 const ChatWidget = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hi there! I can analyze recent team reports. Ask me a question or generate a summary.' }
-  ]);
+  const [messages, setMessages] = useState(DEFAULT_MESSAGES);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [reportContext, setReportContext] = useState('');
   const messagesEndRef = useRef(null);
+
+  // Reset chat on every login/logout (user reference changes each time)
+  useEffect(() => {
+    setMessages(DEFAULT_MESSAGES);
+    setInput('');
+    setIsOpen(false);
+    setIsLoading(false);
+    setReportContext('');
+  }, [user]);
+
+  // Fetch reports when chat is opened
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    if (reportContext) return; // already fetched
+
+    const fetchReports = async () => {
+      try {
+        let reports;
+        if (user.role === 'MANAGER') {
+          // Managers get all recent team reports
+          const res = await api.get('/dashboard/recent-reports');
+          reports = res.data;
+        } else {
+          // Employees get their own reports
+          const res = await api.get('/reports/my');
+          reports = res.data;
+        }
+        setReportContext(formatReportsForContext(reports, user));
+      } catch (err) {
+        console.error('Failed to fetch reports for chat context:', err);
+        setReportContext(`User "${user.fullName}" (${user.email}, role: ${user.role}). Could not load reports.`);
+      }
+    };
+    fetchReports();
+  }, [isOpen, user, reportContext]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -50,14 +103,19 @@ const ChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const openRouterMessages = newMessages.map(msg => ({
+      const systemPrompt = {
+        role: 'system',
+        content: `You are an AI assistant for a Weekly Report application. Answer questions ONLY based on the user's actual report data provided below. Do not make up or assume any data. If the data doesn't contain the answer, say so.\n\n${reportContext}`
+      };
+
+      const chatMessages = newMessages.map(msg => ({
         role: msg.role === 'ai' ? 'assistant' : 'user',
         content: msg.text
       }));
 
       const apiResponse = await client.chat.completions.create({
         model: 'tencent/hy3:free',
-        messages: openRouterMessages,
+        messages: [systemPrompt, ...chatMessages],
       });
 
       const responseText = apiResponse.choices[0]?.message?.content || 'I received an empty response. Please try again.';
