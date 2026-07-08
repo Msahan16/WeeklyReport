@@ -22,6 +22,8 @@ public class Project {
 
     private String description;
 
+    private boolean active = true;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @JsonIgnore
