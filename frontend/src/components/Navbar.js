@@ -34,7 +34,7 @@ const Navbar = () => {
 
   return (
     <header className="navbar">
-      <Link to="/my-reports" className="nav-brand">
+      <Link to={user?.role === 'MANAGER' ? '/dashboard' : '/my-reports'} className="nav-brand">
         <div className="nav-brand-icon">W</div>
         WeeklyReport
       </Link>
@@ -43,8 +43,12 @@ const Navbar = () => {
         <nav className="nav-links">
           {user ? (
             <>
-              <Link to="/my-reports" className={isActive('/my-reports')}>My Reports</Link>
-              <Link to="/reports/new" className={isActive('/reports/new')}>New Report</Link>
+              {user.role !== 'MANAGER' && (
+                <>
+                  <Link to="/my-reports" className={isActive('/my-reports')}>My Reports</Link>
+                  <Link to="/reports/new" className={isActive('/reports/new')}>New Report</Link>
+                </>
+              )}
               {user.role === 'MANAGER' && (
                 <>
                   <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>

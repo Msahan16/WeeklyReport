@@ -16,9 +16,11 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email, password);
+      const { role } = await login(email, password);
       toastSuccess('Welcome back! Signed in successfully.');
-      navigate(from, { replace: true });
+      // Managers go to dashboard; team members go to their reports
+      const destination = role === 'MANAGER' ? '/dashboard' : from;
+      navigate(destination, { replace: true });
     } catch (err) {
       alertError('Login Failed', 'Invalid email or password. Please try again.');
     } finally {

@@ -21,14 +21,14 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('TEAM_MEMBER')")
     public ResponseEntity<ReportResponse> createReport(@AuthenticationPrincipal User user,
                                                        @Valid @RequestBody ReportRequest request) {
         return ResponseEntity.ok(reportService.createReport(user.getId(), request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('TEAM_MEMBER')")
     public ResponseEntity<ReportResponse> updateReport(@PathVariable Long id,
                                                         @AuthenticationPrincipal User user,
                                                         @Valid @RequestBody ReportRequest request) {
