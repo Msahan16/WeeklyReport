@@ -125,27 +125,46 @@ public class DashboardService {
 
         LocalDate today = LocalDate.now();
 
-        for (LocalDate current = start; !current.isAfter(end); current = current.plusWeeks(1)) {
-            LocalDate weekStart = current;
-            LocalDate weekEnd = current.plusDays(6);
-            boolean isLateWeek = today.isAfter(weekEnd);
+        for (User u : members) {
+            Map<String, Object> entry = memberMap.get(u.getId());
+            
+            List<Report> userReports = reports.stream()
+                    .filter(rep -> rep.getUser().getId().equals(u.getId()))
+                    .collect(Collectors.toList());
 
-            for (User u : members) {
-                Report r = reports.stream()
-                        .filter(rep -> rep.getUser().getId().equals(u.getId()) && rep.getWeekStartDate().equals(weekStart))
-                        .findFirst().orElse(null);
+            long submitted = userReports.stream().filter(r -> r.getStatus() == Report.Status.SUBMITTED).count();
+            long late = 0;
+            long pending = 0;
 
-                Map<String, Object> entry = memberMap.get(u.getId());
-                if (r != null && r.getStatus() == Report.Status.SUBMITTED) {
-                    entry.put("submitted", (Long) entry.get("submitted") + 1);
-                } else {
-                    if (isLateWeek) {
-                        entry.put("late", (Long) entry.get("late") + 1);
+            for (Report r : userReports) {
+                if (r.getStatus() == Report.Status.DRAFT) {
+                    if (today.isAfter(r.getWeekEndDate())) {
+                        late++;
                     } else {
-                        entry.put("pending", (Long) entry.get("pending") + 1);
+                        pending++;
                     }
                 }
             }
+
+            // Check for missing weeks
+            for (LocalDate current = start; !current.isAfter(end); current = current.plusWeeks(1)) {
+                LocalDate weekStart = current;
+                LocalDate weekEnd = current.plusDays(6);
+                boolean isLateWeek = today.isAfter(weekEnd);
+
+                boolean hasReportForWeek = userReports.stream().anyMatch(r -> r.getWeekStartDate().equals(weekStart));
+                if (!hasReportForWeek) {
+                    if (isLateWeek) {
+                        late++;
+                    } else {
+                        pending++;
+                    }
+                }
+            }
+
+            entry.put("submitted", submitted);
+            entry.put("late", late);
+            entry.put("pending", pending);
         }
         return new ArrayList<>(memberMap.values());
     }
