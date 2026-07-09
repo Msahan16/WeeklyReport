@@ -3,7 +3,9 @@ package com.example.WeeklyReport.service;
 import com.example.WeeklyReport.dto.DashboardStats;
 import com.example.WeeklyReport.dto.ReportResponse;
 import com.example.WeeklyReport.entity.Report;
+import com.example.WeeklyReport.entity.User;
 import com.example.WeeklyReport.repository.ReportRepository;
+import com.example.WeeklyReport.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DashboardService {
     private final ReportRepository reportRepository;
+    private final UserRepository userRepository;
 
     public DashboardStats getStats(LocalDate start, LocalDate end) {
         List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
@@ -55,6 +58,7 @@ public class DashboardService {
 
         List<Long> reportCounts = new ArrayList<>();
         List<Long> submittedCounts = new ArrayList<>();
+        List<Long> tasksCompletedCounts = new ArrayList<>();
 
         for (LocalDate current = start; !current.isAfter(end); current = current.plusWeeks(1)) {
             LocalDate day = current;
@@ -64,13 +68,22 @@ public class DashboardService {
             long submittedCountForDay = submittedReports.stream()
                 .filter(r -> day.equals(r.getWeekStartDate()))
                     .count();
+            long tasksCount = submittedReports.stream()
+                .filter(r -> day.equals(r.getWeekStartDate()))
+                .mapToLong(r -> {
+                    if (r.getTasksCompleted() == null || r.getTasksCompleted().isBlank()) return 0;
+                    return r.getTasksCompleted().lines().filter(line -> !line.trim().isEmpty()).count();
+                }).sum();
+
             reportCounts.add(reportCountForDay);
             submittedCounts.add(submittedCountForDay);
+            tasksCompletedCounts.add(tasksCount);
         }
 
         Map<String, List<Long>> trend = new LinkedHashMap<>();
         trend.put("reports", reportCounts);
         trend.put("submittedReports", submittedCounts);
+        trend.put("tasksCompleted", tasksCompletedCounts);
         return trend;
     }
 
@@ -98,22 +111,40 @@ public class DashboardService {
 
     public List<Map<String, Object>> getSubmissionStatusByMember(LocalDate start, LocalDate end) {
         List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
+        List<User> members = userRepository.findByRole(User.Role.TEAM_MEMBER);
 
-        Map<String, Map<String, Object>> memberMap = new LinkedHashMap<>();
-        for (Report r : reports) {
-            String name = r.getUser() != null ? r.getUser().getFullName() : "Unknown";
-            memberMap.computeIfAbsent(name, k -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("name", k);
-                m.put("submitted", 0L);
-                m.put("draft", 0L);
-                return m;
-            });
-            Map<String, Object> entry = memberMap.get(name);
-            if (r.getStatus() == Report.Status.SUBMITTED) {
-                entry.put("submitted", (Long) entry.get("submitted") + 1);
-            } else {
-                entry.put("draft", (Long) entry.get("draft") + 1);
+        Map<Long, Map<String, Object>> memberMap = new LinkedHashMap<>();
+        for (User u : members) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("name", u.getFullName());
+            m.put("submitted", 0L);
+            m.put("pending", 0L);
+            m.put("late", 0L);
+            memberMap.put(u.getId(), m);
+        }
+
+        LocalDate today = LocalDate.now();
+
+        for (LocalDate current = start; !current.isAfter(end); current = current.plusWeeks(1)) {
+            LocalDate weekStart = current;
+            LocalDate weekEnd = current.plusDays(6);
+            boolean isLateWeek = today.isAfter(weekEnd);
+
+            for (User u : members) {
+                Report r = reports.stream()
+                        .filter(rep -> rep.getUser().getId().equals(u.getId()) && rep.getWeekStartDate().equals(weekStart))
+                        .findFirst().orElse(null);
+
+                Map<String, Object> entry = memberMap.get(u.getId());
+                if (r != null && r.getStatus() == Report.Status.SUBMITTED) {
+                    entry.put("submitted", (Long) entry.get("submitted") + 1);
+                } else {
+                    if (isLateWeek) {
+                        entry.put("late", (Long) entry.get("late") + 1);
+                    } else {
+                        entry.put("pending", (Long) entry.get("pending") + 1);
+                    }
+                }
             }
         }
         return new ArrayList<>(memberMap.values());

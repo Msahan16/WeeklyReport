@@ -4,6 +4,7 @@ import com.example.WeeklyReport.entity.Report;
 import com.example.WeeklyReport.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
@@ -27,4 +28,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     @Query("SELECT r FROM Report r WHERE r.weekStartDate BETWEEN :start AND :end AND r.user.id = :userId AND r.project.id = :projectId")
     List<Report> findByWeekRangeAndUserAndProject(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("userId") Long userId, @Param("projectId") Long projectId);
+
+    @Modifying
+    @Query("UPDATE Report r SET r.project = null WHERE r.project.id = :projectId")
+    void clearProjectReferences(@Param("projectId") Long projectId);
 }

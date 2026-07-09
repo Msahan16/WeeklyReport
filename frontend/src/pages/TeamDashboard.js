@@ -3,7 +3,7 @@ import api from '../api/axios';
 import { toastError } from '../utils/swal';
 
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, ResponsiveContainer,
 } from 'recharts';
 
@@ -26,6 +26,7 @@ const TeamDashboard = () => {
   const [recentReports, setRecentReports] = useState([]);
   const [projects, setProjects] = useState([]);
   const [allMembers, setAllMembers] = useState([]);
+  const [trendData, setTrendData] = useState([]);
   const [weekStart, setWeekStart] = useState(defStart);
   const [weekEnd, setWeekEnd] = useState(defEnd);
   const [filterMember, setFilterMember] = useState('');
@@ -39,7 +40,12 @@ const TeamDashboard = () => {
       if (filterMember) params.append('userId', filterMember);
       if (filterProject) params.append('projectId', filterProject);
 
-      const [reportsRes, statsRes, workloadRes, submissionRes, recentRes, projectsRes, membersRes] = await Promise.all([
+      const trendStartDt = new Date(weekEnd);
+      trendStartDt.setDate(trendStartDt.getDate() - 27);
+      trendStartDt.setDate(trendStartDt.getDate() - (trendStartDt.getDay() === 0 ? 6 : trendStartDt.getDay() - 1));
+      const trendStart = trendStartDt.toISOString().split('T')[0];
+
+      const [reportsRes, statsRes, workloadRes, submissionRes, recentRes, projectsRes, membersRes, trendRes] = await Promise.all([
         api.get(`/reports/team?${params.toString()}`),
         api.get(`/dashboard/stats?weekStart=${weekStart}&weekEnd=${weekEnd}`),
         api.get(`/dashboard/workload-by-project?weekStart=${weekStart}&weekEnd=${weekEnd}`),
@@ -47,6 +53,7 @@ const TeamDashboard = () => {
         api.get('/dashboard/recent-reports'),
         api.get('/projects'),
         api.get('/dashboard/team-members'),
+        api.get(`/dashboard/trends?start=${trendStart}&end=${weekEnd}`),
       ]);
       setReports(reportsRes.data);
       setStats(statsRes.data);
@@ -55,6 +62,14 @@ const TeamDashboard = () => {
       setRecentReports(recentRes.data);
       setProjects(projectsRes.data);
       setAllMembers(membersRes.data);
+      
+      const tData = trendRes.data.tasksCompleted || [];
+      const fData = tData.map((val, i) => {
+         const d = new Date(trendStartDt);
+         d.setDate(d.getDate() + (i * 7));
+         return { week: d.toLocaleDateString(undefined, {month:'short', day:'numeric'}), tasks: val };
+      });
+      setTrendData(fData);
     } catch (err) {
       toastError('Could not load dashboard data. Check your connection and session.');
     } finally {
@@ -146,6 +161,21 @@ const TeamDashboard = () => {
           </ResponsiveContainer>
         </div>
 
+        {/* Tasks Completed Trend line chart */}
+        <div style={styles.chartCard} className="card">
+          <h3 style={styles.chartTitle}>Tasks Completed Trend (Last 4 Weeks)</h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="tasks" name="Completed Tasks" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
         {/* Workload by project bar */}
         <div style={styles.chartCard} className="card">
           <h3 style={styles.chartTitle}>Workload by Project (Hours)</h3>
@@ -177,7 +207,8 @@ const TeamDashboard = () => {
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="submitted" name="Submitted" fill="#10b981" radius={[0, 4, 4, 0]} stackId="a" />
-                <Bar dataKey="draft" name="Draft" fill="#f59e0b" radius={[0, 4, 4, 0]} stackId="a" />
+                <Bar dataKey="pending" name="Pending" fill="#f59e0b" radius={[0, 4, 4, 0]} stackId="a" />
+                <Bar dataKey="late" name="Late" fill="#ef4444" radius={[0, 4, 4, 0]} stackId="a" />
               </BarChart>
             </ResponsiveContainer>
           </div>

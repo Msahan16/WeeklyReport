@@ -1,6 +1,7 @@
 package com.example.WeeklyReport.controller;
 
-import com.example.WeeklyReport.entity.Project;
+import com.example.WeeklyReport.dto.ProjectRequest;
+import com.example.WeeklyReport.dto.ProjectResponse;
 import com.example.WeeklyReport.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,20 +18,20 @@ public class ProjectController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Project>> getAll() {
+    public ResponseEntity<List<ProjectResponse>> getAll() {
         return ResponseEntity.ok(projectService.getAllProjects());
     }
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Project> create(@RequestBody Project project) {
-        return ResponseEntity.ok(projectService.createProject(project));
+    public ResponseEntity<ProjectResponse> create(@RequestBody ProjectRequest request) {
+        return ResponseEntity.ok(projectService.createProject(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Project> update(@PathVariable Long id, @RequestBody Project project) {
-        return ResponseEntity.ok(projectService.updateProject(id, project));
+    public ResponseEntity<ProjectResponse> update(@PathVariable Long id, @RequestBody ProjectRequest request) {
+        return ResponseEntity.ok(projectService.updateProject(id, request));
     }
 
     @DeleteMapping("/{id}")

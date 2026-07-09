@@ -6,15 +6,20 @@ const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', assignedMemberIds: [] });
+  const [teamMembers, setTeamMembers] = useState([]);
 
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/projects');
-      setProjects(res.data);
+      const [projRes, membersRes] = await Promise.all([
+        api.get('/projects'),
+        api.get('/dashboard/team-members')
+      ]);
+      setProjects(projRes.data);
+      setTeamMembers(membersRes.data);
     } catch (err) {
-      toastError('Could not load projects.');
+      toastError('Could not load projects or members.');
     } finally {
       setLoading(false);
     }
@@ -39,7 +44,7 @@ const Projects = () => {
         await api.post('/projects', formData);
         toastSuccess('Project created successfully!');
       }
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', assignedMemberIds: [] });
       fetchProjects();
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to save project.';
@@ -49,12 +54,16 @@ const Projects = () => {
 
   const handleEdit = (project) => {
     setEditingId(project.id);
-    setFormData({ name: project.name, description: project.description || '' });
+    setFormData({ 
+      name: project.name, 
+      description: project.description || '',
+      assignedMemberIds: project.assignedMembers ? project.assignedMembers.map(m => m.id) : []
+    });
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', description: '' });
+    setFormData({ name: '', description: '', assignedMemberIds: [] });
   };
 
   const handleDelete = async (id, name) => {
@@ -114,6 +123,28 @@ const Projects = () => {
               id="project-description-input"
             />
           </div>
+          <div style={styles.field}>
+            <label style={styles.label}>Assign Team Members</label>
+            <div style={styles.checkboxList}>
+              {teamMembers.map(m => (
+                <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#374151' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.assignedMemberIds.includes(m.id)}
+                    onChange={(e) => {
+                      const id = m.id;
+                      if (e.target.checked) {
+                        setFormData({ ...formData, assignedMemberIds: [...formData.assignedMemberIds, id] });
+                      } else {
+                        setFormData({ ...formData, assignedMemberIds: formData.assignedMemberIds.filter(i => i !== id) });
+                      }
+                    }}
+                  />
+                  {m.name}
+                </label>
+              ))}
+            </div>
+          </div>
           <div style={styles.buttonGroup}>
             <button type="submit" style={styles.submitButton} id="project-submit-btn">
               {editingId ? 'Update Project' : 'Create Project'}
@@ -143,6 +174,11 @@ const Projects = () => {
                   <strong style={styles.projectName}>{project.name}</strong>
                   {project.description && (
                     <span style={styles.projectDesc}>{project.description}</span>
+                  )}
+                  {project.assignedMembers && project.assignedMembers.length > 0 && (
+                    <div style={{ marginTop: 6, fontSize: 12, color: '#64748b' }}>
+                      <strong>Assigned:</strong> {project.assignedMembers.map(m => m.name).join(', ')}
+                    </div>
                   )}
                 </div>
                 <div style={styles.actions}>
