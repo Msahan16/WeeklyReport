@@ -48,6 +48,7 @@ public class Report {
     private String notes;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private Status status = Status.DRAFT;
 
     @CreationTimestamp
