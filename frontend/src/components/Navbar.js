@@ -52,6 +52,7 @@ const Navbar = () => {
               {user.role === 'MANAGER' && (
                 <>
                   <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
+                  <Link to="/team-reports" className={isActive('/team-reports')}>Team Reports</Link>
                   <Link to="/projects" className={isActive('/projects')}>Projects</Link>
                 </>
               )}

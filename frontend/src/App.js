@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import MyReports from './pages/MyReports';
 import ReportForm from './pages/ReportForm';
 import TeamDashboard from './pages/TeamDashboard';
+import TeamReports from './pages/TeamReports';
 import Projects from './pages/Projects';
 import Navbar from './components/Navbar';
 import ChatWidget from './components/ChatWidget';
@@ -40,6 +41,7 @@ function App() {
           {/* Manager routes — view-only dashboard & projects */}
           <Route element={<PrivateRoute roles={['MANAGER']} />}>
             <Route path="/dashboard" element={<TeamDashboard />} />
+            <Route path="/team-reports" element={<TeamReports />} />
             <Route path="/projects" element={<Projects />} />
           </Route>
         </Routes>

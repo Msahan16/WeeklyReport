@@ -3,6 +3,8 @@ package com.example.WeeklyReport.controller;
 import com.example.WeeklyReport.dto.DashboardStats;
 import com.example.WeeklyReport.dto.ReportResponse;
 import com.example.WeeklyReport.service.DashboardService;
+import com.example.WeeklyReport.repository.UserRepository;
+import com.example.WeeklyReport.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.Map;
 @PreAuthorize("hasRole('MANAGER')")
 public class DashboardController {
     private final DashboardService dashboardService;
+    private final UserRepository userRepository;
 
     @GetMapping("/stats")
     public DashboardStats getStats(@RequestParam String weekStart, @RequestParam String weekEnd) {
@@ -49,5 +52,12 @@ public class DashboardController {
     @GetMapping("/recent-reports")
     public List<ReportResponse> getRecentReports() {
         return dashboardService.getRecentReports();
+    }
+
+    @GetMapping("/team-members")
+    public List<Map<String, Object>> getTeamMembers() {
+        return userRepository.findByRole(User.Role.TEAM_MEMBER).stream()
+            .map(u -> Map.of("id", (Object) u.getId(), "name", (Object) u.getFullName()))
+            .toList();
     }
 }

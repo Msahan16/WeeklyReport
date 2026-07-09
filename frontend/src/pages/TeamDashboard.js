@@ -25,6 +25,7 @@ const TeamDashboard = () => {
   const [submissionStatus, setSubmissionStatus] = useState([]);
   const [recentReports, setRecentReports] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [allMembers, setAllMembers] = useState([]);
   const [weekStart, setWeekStart] = useState(defStart);
   const [weekEnd, setWeekEnd] = useState(defEnd);
   const [filterMember, setFilterMember] = useState('');
@@ -38,13 +39,14 @@ const TeamDashboard = () => {
       if (filterMember) params.append('userId', filterMember);
       if (filterProject) params.append('projectId', filterProject);
 
-      const [reportsRes, statsRes, workloadRes, submissionRes, recentRes, projectsRes] = await Promise.all([
+      const [reportsRes, statsRes, workloadRes, submissionRes, recentRes, projectsRes, membersRes] = await Promise.all([
         api.get(`/reports/team?${params.toString()}`),
         api.get(`/dashboard/stats?weekStart=${weekStart}&weekEnd=${weekEnd}`),
         api.get(`/dashboard/workload-by-project?weekStart=${weekStart}&weekEnd=${weekEnd}`),
         api.get(`/dashboard/submission-status?weekStart=${weekStart}&weekEnd=${weekEnd}`),
         api.get('/dashboard/recent-reports'),
         api.get('/projects'),
+        api.get('/dashboard/team-members'),
       ]);
       setReports(reportsRes.data);
       setStats(statsRes.data);
@@ -52,6 +54,7 @@ const TeamDashboard = () => {
       setSubmissionStatus(submissionRes.data);
       setRecentReports(recentRes.data);
       setProjects(projectsRes.data);
+      setAllMembers(membersRes.data);
     } catch (err) {
       toastError('Could not load dashboard data. Check your connection and session.');
     } finally {
@@ -62,9 +65,6 @@ const TeamDashboard = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Unique members from reports
-  const allMembers = [...new Map(reports.map(r => [r.userId, { id: r.userId, name: r.userFullName || r.userEmail }])).values()];
 
   // Submission rate for compliance ring
   const complianceRate = stats.totalReports
@@ -200,36 +200,6 @@ const TeamDashboard = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Reports table */}
-      <div style={styles.card} className="card">
-        <h3 style={styles.sectionTitle}>Weekly Reports ({reports.length})</h3>
-        <div style={styles.reportList}>
-          {reports.length === 0 ? (
-            <div style={styles.empty}>No reports found for the selected filters.</div>
-          ) : (
-            reports.map(report => (
-              <div key={report.id} style={styles.reportItem}>
-                <div style={styles.reportLeft}>
-                  <strong style={{ color: '#0f172a' }}>{report.userFullName || report.userEmail}</strong>
-                  {report.projectName && (
-                    <span style={styles.projectTag}>{report.projectName}</span>
-                  )}
-                  {report.blockers && (
-                    <span style={styles.blockerTag}>🚧 Blocker</span>
-                  )}
-                </div>
-                <div style={styles.reportRight}>
-                  <span style={{ color: '#64748b', fontSize: 13 }}>
-                    {report.weekStartDate} – {report.weekEndDate}
-                  </span>
-                  <StatusBadge status={report.status} />
-                </div>
-              </div>
-            ))
-          )}
-        </div>
       </div>
 
     </div>
