@@ -16,6 +16,9 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByWeekStartDateBetween(LocalDate start, LocalDate end);
     List<Report> findByUserAndWeekStartDate(User user, LocalDate weekStartDate);
     List<Report> findTop10ByOrderByCreatedAtDesc();
+    List<Report> findTop10ByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Report> findTop10ByProjectIdOrderByCreatedAtDesc(Long projectId);
+    List<Report> findTop10ByUserIdAndProjectIdOrderByCreatedAtDesc(Long userId, Long projectId);
 
     @Query("SELECT r FROM Report r WHERE r.status = 'SUBMITTED' AND r.weekStartDate BETWEEN :start AND :end")
     List<Report> findSubmittedReportsForWeek(@Param("start") LocalDate start, @Param("end") LocalDate end);

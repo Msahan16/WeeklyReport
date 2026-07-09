@@ -47,13 +47,13 @@ const TeamDashboard = () => {
 
       const [reportsRes, statsRes, workloadRes, submissionRes, recentRes, projectsRes, membersRes, trendRes] = await Promise.all([
         api.get(`/reports/team?${params.toString()}`),
-        api.get(`/dashboard/stats?weekStart=${weekStart}&weekEnd=${weekEnd}`),
-        api.get(`/dashboard/workload-by-project?weekStart=${weekStart}&weekEnd=${weekEnd}`),
-        api.get(`/dashboard/submission-status?weekStart=${weekStart}&weekEnd=${weekEnd}`),
-        api.get('/dashboard/recent-reports'),
+        api.get(`/dashboard/stats?weekStart=${weekStart}&weekEnd=${weekEnd}${filterMember ? `&userId=${filterMember}` : ''}${filterProject ? `&projectId=${filterProject}` : ''}`),
+        api.get(`/dashboard/workload-by-project?weekStart=${weekStart}&weekEnd=${weekEnd}${filterMember ? `&userId=${filterMember}` : ''}${filterProject ? `&projectId=${filterProject}` : ''}`),
+        api.get(`/dashboard/submission-status?weekStart=${weekStart}&weekEnd=${weekEnd}${filterMember ? `&userId=${filterMember}` : ''}${filterProject ? `&projectId=${filterProject}` : ''}`),
+        api.get(`/dashboard/recent-reports?${filterMember ? `userId=${filterMember}&` : ''}${filterProject ? `projectId=${filterProject}` : ''}`),
         api.get('/projects'),
         api.get('/dashboard/team-members'),
-        api.get(`/dashboard/trends?start=${trendStart}&end=${weekEnd}`),
+        api.get(`/dashboard/trends?start=${trendStart}&end=${weekEnd}${filterMember ? `&userId=${filterMember}` : ''}${filterProject ? `&projectId=${filterProject}` : ''}`),
       ]);
       setReports(reportsRes.data);
       setStats(statsRes.data);

@@ -24,8 +24,19 @@ public class DashboardService {
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
 
-    public DashboardStats getStats(LocalDate start, LocalDate end) {
-        List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
+    private List<Report> getFilteredReports(LocalDate start, LocalDate end, Long userId, Long projectId) {
+        if (userId != null && projectId != null) {
+            return reportRepository.findByWeekRangeAndUserAndProject(start, end, userId, projectId);
+        } else if (userId != null) {
+            return reportRepository.findByWeekRangeAndUser(start, end, userId);
+        } else if (projectId != null) {
+            return reportRepository.findByWeekRangeAndProject(start, end, projectId);
+        }
+        return reportRepository.findByWeekStartDateBetween(start, end);
+    }
+
+    public DashboardStats getStats(LocalDate start, LocalDate end, Long userId, Long projectId) {
+        List<Report> reports = getFilteredReports(start, end, userId, projectId);
         long totalReports = reports.size();
         long submittedReports = reports.stream().filter(r -> r.getStatus() == Report.Status.SUBMITTED).count();
         long draftReports = totalReports - submittedReports;
@@ -52,9 +63,11 @@ public class DashboardService {
         return stats;
     }
 
-    public Map<String, List<Long>> getTasksTrend(LocalDate start, LocalDate end) {
-        List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
-        List<Report> submittedReports = reportRepository.findSubmittedReportsForWeek(start, end);
+    public Map<String, List<Long>> getTasksTrend(LocalDate start, LocalDate end, Long userId, Long projectId) {
+        List<Report> reports = getFilteredReports(start, end, userId, projectId);
+        List<Report> submittedReports = reports.stream()
+                .filter(r -> r.getStatus() == Report.Status.SUBMITTED)
+                .collect(Collectors.toList());
 
         List<Long> reportCounts = new ArrayList<>();
         List<Long> submittedCounts = new ArrayList<>();
@@ -87,8 +100,8 @@ public class DashboardService {
         return trend;
     }
 
-    public List<Map<String, Object>> getWorkloadByProject(LocalDate start, LocalDate end) {
-        List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
+    public List<Map<String, Object>> getWorkloadByProject(LocalDate start, LocalDate end, Long userId, Long projectId) {
+        List<Report> reports = getFilteredReports(start, end, userId, projectId);
 
         // Group by project name, count tasks/hours per project
         Map<String, Map<String, Object>> projectMap = new LinkedHashMap<>();
@@ -109,8 +122,8 @@ public class DashboardService {
         return new ArrayList<>(projectMap.values());
     }
 
-    public List<Map<String, Object>> getSubmissionStatusByMember(LocalDate start, LocalDate end) {
-        List<Report> reports = reportRepository.findByWeekStartDateBetween(start, end);
+    public List<Map<String, Object>> getSubmissionStatusByMember(LocalDate start, LocalDate end, Long userId, Long projectId) {
+        List<Report> reports = getFilteredReports(start, end, userId, projectId);
         List<User> members = userRepository.findByRole(User.Role.TEAM_MEMBER);
 
         Map<Long, Map<String, Object>> memberMap = new LinkedHashMap<>();
@@ -169,8 +182,18 @@ public class DashboardService {
         return new ArrayList<>(memberMap.values());
     }
 
-    public List<ReportResponse> getRecentReports() {
-        return reportRepository.findTop10ByOrderByCreatedAtDesc().stream()
+    public List<ReportResponse> getRecentReports(Long userId, Long projectId) {
+        List<Report> recentReports;
+        if (userId != null && projectId != null) {
+            recentReports = reportRepository.findTop10ByUserIdAndProjectIdOrderByCreatedAtDesc(userId, projectId);
+        } else if (userId != null) {
+            recentReports = reportRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId);
+        } else if (projectId != null) {
+            recentReports = reportRepository.findTop10ByProjectIdOrderByCreatedAtDesc(projectId);
+        } else {
+            recentReports = reportRepository.findTop10ByOrderByCreatedAtDesc();
+        }
+        return recentReports.stream()
                 .map(this::mapToReportResponse)
                 .collect(Collectors.toList());
     }

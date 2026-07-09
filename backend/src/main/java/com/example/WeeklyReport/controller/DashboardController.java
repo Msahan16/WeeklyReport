@@ -22,36 +22,40 @@ public class DashboardController {
     private final UserRepository userRepository;
 
     @GetMapping("/stats")
-    public DashboardStats getStats(@RequestParam String weekStart, @RequestParam String weekEnd) {
+    public DashboardStats getStats(@RequestParam String weekStart, @RequestParam String weekEnd, 
+                                   @RequestParam(required = false) Long userId, @RequestParam(required = false) Long projectId) {
         LocalDate start = LocalDate.parse(weekStart);
         LocalDate end = LocalDate.parse(weekEnd);
-        return dashboardService.getStats(start, end);
+        return dashboardService.getStats(start, end, userId, projectId);
     }
 
     @GetMapping("/trends")
-    public Map<String, List<Long>> getTasksTrend(@RequestParam String start, @RequestParam String end) {
+    public Map<String, List<Long>> getTasksTrend(@RequestParam String start, @RequestParam String end,
+                                                 @RequestParam(required = false) Long userId, @RequestParam(required = false) Long projectId) {
         LocalDate startDate = LocalDate.parse(start);
         LocalDate endDate = LocalDate.parse(end);
-        return dashboardService.getTasksTrend(startDate, endDate);
+        return dashboardService.getTasksTrend(startDate, endDate, userId, projectId);
     }
 
     @GetMapping("/workload-by-project")
-    public List<Map<String, Object>> getWorkloadByProject(@RequestParam String weekStart, @RequestParam String weekEnd) {
+    public List<Map<String, Object>> getWorkloadByProject(@RequestParam String weekStart, @RequestParam String weekEnd,
+                                                          @RequestParam(required = false) Long userId, @RequestParam(required = false) Long projectId) {
         LocalDate start = LocalDate.parse(weekStart);
         LocalDate end = LocalDate.parse(weekEnd);
-        return dashboardService.getWorkloadByProject(start, end);
+        return dashboardService.getWorkloadByProject(start, end, userId, projectId);
     }
 
     @GetMapping("/submission-status")
-    public List<Map<String, Object>> getSubmissionStatusByMember(@RequestParam String weekStart, @RequestParam String weekEnd) {
+    public List<Map<String, Object>> getSubmissionStatusByMember(@RequestParam String weekStart, @RequestParam String weekEnd,
+                                                                 @RequestParam(required = false) Long userId, @RequestParam(required = false) Long projectId) {
         LocalDate start = LocalDate.parse(weekStart);
         LocalDate end = LocalDate.parse(weekEnd);
-        return dashboardService.getSubmissionStatusByMember(start, end);
+        return dashboardService.getSubmissionStatusByMember(start, end, userId, projectId);
     }
 
     @GetMapping("/recent-reports")
-    public List<ReportResponse> getRecentReports() {
-        return dashboardService.getRecentReports();
+    public List<ReportResponse> getRecentReports(@RequestParam(required = false) Long userId, @RequestParam(required = false) Long projectId) {
+        return dashboardService.getRecentReports(userId, projectId);
     }
 
     @GetMapping("/team-members")
