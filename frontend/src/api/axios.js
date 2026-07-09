@@ -7,7 +7,7 @@ const api = axios.create({
 
 // Add token to every request
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const requestUrl = config.url || '';
   const isAuthRequest = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register');
   if (token && !isAuthRequest) {
