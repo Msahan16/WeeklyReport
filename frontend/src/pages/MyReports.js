@@ -48,9 +48,7 @@ const MyReports = () => {
           <div style={styles.emptyIcon}>📋</div>
           <h3 style={styles.emptyTitle}>No reports yet</h3>
           <p style={styles.emptyText}>Create your first weekly report to get started.</p>
-          <Link to="/reports/new" style={{ textDecoration: 'none' }}>
-            <button style={styles.newBtn} id="create-first-report-btn">Create First Report</button>
-          </Link>
+         
         </div>
       ) : (
         <div style={styles.reportGrid}>
